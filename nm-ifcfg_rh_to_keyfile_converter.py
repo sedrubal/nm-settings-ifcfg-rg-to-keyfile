@@ -82,9 +82,14 @@ def validate_assigned_mac_address(prop, value):
     )
 
 
-NM_SETTINGS_SECRET_FLAG_TYPES = {"agent-owned", "none", "not-required", "not-saved"}
+NM_SETTINGS_SECRET_FLAG_TYPES = {
+    "none": 0,
+    "agent-owned": 1,
+    "not-saved": 2,
+    "not-required": 4,
+}
 
-NM_SETTINGS_PROPERTIES = {
+NM_SETTINGS_PROPERTIES: typing.Dict[str, typing.Dict[str, typing.Any]] = {
     "connection.id": {"type": str, "required": True,},
     "connection.uuid": {"type": str, "required": True,},
     "connection.type": {
@@ -151,6 +156,8 @@ NM_SETTINGS_PROPERTIES = {
             "manual",
             "shared",
         },
+        "required": True,
+        "default": "auto",
     },
     "ipv6.dns": {},
     "ipv6.dns-search": {"type": str,},
@@ -177,13 +184,16 @@ NM_SETTINGS_PROPERTIES = {
     "ipv6.dhcp-hostname-flags": {},
     "ipv6.token": {},
     "802-1x.optional": {},
-    "802-1x.eap": {},
+    "802-1x.eap": {"type": list, "list_type": str,},
     "802-1x.identity": {},
     "802-1x.anonymous-identity": {},
     "802-1x.pac-file": {},
     "802-1x.ca-cert": {},
     "802-1x.ca-cert-password": {},
-    "802-1x.ca-cert-password-flags": {"choices": NM_SETTINGS_SECRET_FLAG_TYPES,},
+    "802-1x.ca-cert-password-flags": {
+        "choices": frozenset(NM_SETTINGS_SECRET_FLAG_TYPES.keys()),
+        "format_for_keyfile": lambda v: NM_SETTINGS_SECRET_FLAG_TYPES[v],
+    },
     "802-1x.ca-path": {},
     "802-1x.subject-match": {},
     "802-1x.altsubject-matches": {},
@@ -191,16 +201,25 @@ NM_SETTINGS_PROPERTIES = {
     "802-1x.domain-match": {},
     "802-1x.client-cert": {},
     "802-1x.client-cert-password": {},
-    "802-1x.client-cert-password-flags": {"choices": NM_SETTINGS_SECRET_FLAG_TYPES,},
+    "802-1x.client-cert-password-flags": {
+        "choices": frozenset(NM_SETTINGS_SECRET_FLAG_TYPES.keys()),
+        "format_for_keyfile": lambda v: NM_SETTINGS_SECRET_FLAG_TYPES[v],
+    },
     "802-1x.phase1-peapver": {},
     "802-1x.phase1-peaplabel": {},
     "802-1x.phase1-fast-provisioning": {},
-    "802-1x.phase1-auth-flags": {"choices": NM_SETTINGS_SECRET_FLAG_TYPES,},
+    "802-1x.phase1-auth-flags": {
+        "choices": frozenset(NM_SETTINGS_SECRET_FLAG_TYPES.keys()),
+        "format_for_keyfile": lambda v: NM_SETTINGS_SECRET_FLAG_TYPES[v],
+    },
     "802-1x.phase2-auth": {},
     "802-1x.phase2-autheap": {},
     "802-1x.phase2-ca-cert": {},
     "802-1x.phase2-ca-cert-password": {},
-    "802-1x.phase2-ca-cert-password-flags": {"choices": NM_SETTINGS_SECRET_FLAG_TYPES,},
+    "802-1x.phase2-ca-cert-password-flags": {
+        "choices": frozenset(NM_SETTINGS_SECRET_FLAG_TYPES.keys()),
+        "format_for_keyfile": lambda v: NM_SETTINGS_SECRET_FLAG_TYPES[v],
+    },
     "802-1x.phase2-ca-path": {},
     "802-1x.phase2-subject-match": {},
     "802-1x.phase2-altsubject-matches": {},
@@ -209,22 +228,33 @@ NM_SETTINGS_PROPERTIES = {
     "802-1x.phase2-client-cert": {},
     "802-1x.phase2-client-cert-password": {},
     "802-1x.phase2-client-cert-password-flags": {
-        "choices": NM_SETTINGS_SECRET_FLAG_TYPES,
+        "choices": frozenset(NM_SETTINGS_SECRET_FLAG_TYPES.keys()),
+        "format_for_keyfile": lambda v: NM_SETTINGS_SECRET_FLAG_TYPES[v],
     },
     "802-1x.password": {},
-    "802-1x.password-flags": {"choices": NM_SETTINGS_SECRET_FLAG_TYPES,},
+    "802-1x.password-flags": {
+        "choices": frozenset(NM_SETTINGS_SECRET_FLAG_TYPES.keys()),
+        "format_for_keyfile": lambda v: NM_SETTINGS_SECRET_FLAG_TYPES[v],
+    },
     "802-1x.password-raw": {},
     "802-1x.password-raw-flags": {},
     "802-1x.private-key": {},
     "802-1x.private-key-password": {},
-    "802-1x.private-key-password-flags": {"choices": NM_SETTINGS_SECRET_FLAG_TYPES,},
+    "802-1x.private-key-password-flags": {
+        "choices": frozenset(NM_SETTINGS_SECRET_FLAG_TYPES.keys()),
+        "format_for_keyfile": lambda v: NM_SETTINGS_SECRET_FLAG_TYPES[v],
+    },
     "802-1x.phase2-private-key": {},
     "802-1x.phase2-private-key-password": {},
     "802-1x.phase2-private-key-password-flags": {
-        "choices": NM_SETTINGS_SECRET_FLAG_TYPES,
+        "choices": frozenset(NM_SETTINGS_SECRET_FLAG_TYPES.keys()),
+        "format_for_keyfile": lambda v: NM_SETTINGS_SECRET_FLAG_TYPES[v],
     },
     "802-1x.pin": {},
-    "802-1x.pin-flags": {"choices": NM_SETTINGS_SECRET_FLAG_TYPES,},
+    "802-1x.pin-flags": {
+        "choices": frozenset(NM_SETTINGS_SECRET_FLAG_TYPES.keys()),
+        "format_for_keyfile": lambda v: NM_SETTINGS_SECRET_FLAG_TYPES[v],
+    },
     "802-1x.system-ca-certs": {},
     "802-1x.auth-timeout": {},
     "802-3-ethernet.port": {},
@@ -266,6 +296,7 @@ NM_SETTINGS_PROPERTIES = {
     "802-11-wireless.mac-address-randomization": {
         "choices": {"default", "never", "always"},
         "deprecated": True,
+        "format_for_keyfile": lambda v: {"default": 0, "never": 1, "always": 2,}[v],
     },
     "802-11-wireless.mtu": {},
     "802-11-wireless.seen-bssids": {},
@@ -287,18 +318,27 @@ NM_SETTINGS_PROPERTIES = {
     "802-11-wireless-security.wep-key2": {},
     "802-11-wireless-security.wep-key3": {},
     "802-11-wireless-security.wep-key-flags": {
-        "choices": NM_SETTINGS_SECRET_FLAG_TYPES,
+        "choices": frozenset(NM_SETTINGS_SECRET_FLAG_TYPES.keys()),
+        "format_for_keyfile": lambda v: NM_SETTINGS_SECRET_FLAG_TYPES[v],
     },
     "802-11-wireless-security.wep-key-type": {},
     "802-11-wireless-security.psk": {},
-    "802-11-wireless-security.psk-flags": {"choices": NM_SETTINGS_SECRET_FLAG_TYPES,},
+    "802-11-wireless-security.psk-flags": {
+        "choices": frozenset(NM_SETTINGS_SECRET_FLAG_TYPES.keys()),
+        "format_for_keyfile": lambda v: NM_SETTINGS_SECRET_FLAG_TYPES[v],
+    },
     "802-11-wireless-security.leap-password": {},
     "802-11-wireless-security.leap-password-flags": {
-        "choices": NM_SETTINGS_SECRET_FLAG_TYPES,
+        "choices": frozenset(NM_SETTINGS_SECRET_FLAG_TYPES.keys()),
+        "format_for_keyfile": lambda v: NM_SETTINGS_SECRET_FLAG_TYPES[v],
     },
     "802-11-wireless-security.wps-method": {},
     "802-11-wireless-security.fils": {},
-    "proxy.method": {"type": str, "choices": {"auto", "none"}},
+    "proxy.method": {
+        "type": str,
+        "choices": {"auto", "none"},
+        "format_for_keyfile": lambda v: {"auto": 1, "none": 0,}[v],
+    },
     "proxy.browser-only": {"type": bool,},
     "proxy.pac-url": {},
     "proxy.pac-script": {},
@@ -315,12 +355,26 @@ NM_SETTINGS_PROPERTIES = {
     "bridge.multicast-router": {},
     "bridge.multicast-snooping": {},
     "bridge.priority": {},
-    "bridge.stp": {},
+    "bridge.stp": {"type": bool,},
     "bridge.vlan-default-pvid": {},
     "bridge.vlan-filtering": {},
     "bridge.vlan-protocol": {},
     "bridge.vlan-stats-enabled": {},
     "bridge.vlans": {},
+}
+
+
+KEYFILE_SECTION_NAMES = {
+    "802-11-wireless": "wifi",
+    "802-11-wireless-security": "wifi-security",
+    "802-1x": "802-1x",
+    "802-3-ethernet": "ethernet",
+    "bridge": "bridge",
+    "connection": "connection",
+    "ipv4": "ipv4",
+    "ipv6": "ipv6",
+    "proxy": "proxy",
+    "wifi": "wifi",
 }
 
 
@@ -538,7 +592,7 @@ IFCFG_PROPERTIES = {
         "action": ActionSetProperty(
             "ipv4.method",
             {
-                "none": "disabled",
+                "none": "manual",  # or disabled?
                 "dhcp": "auto",
                 #  "bootp": None,  # not supported
                 "static": "manual",
@@ -566,10 +620,35 @@ IFCFG_PROPERTIES = {
     "IEEE_8021X_DOMAIN_SUFFIX_MATCH": {
         "action": ActionSetProperty("802-1x.domain-suffix-match"),
     },
-    "IEEE_8021X_EAP_METHODS": {"action": ActionSetProperty("802-1x.eap"),},
+    "IEEE_8021X_EAP_METHODS": {
+        "action": ActionSetProperty(
+            "802-1x.eap",
+            {
+                "FAST": "fast",
+                "LEAP": "leap",
+                "PEAP": "peap",
+                "PWD": "pwd",
+                "TLS": "tls",
+                "TTLS": "ttls",
+            },
+        ),
+        "list": True,
+    },
     "IEEE_8021X_IDENTITY": {"action": ActionSetProperty("802-1x.identity"),},
     "IEEE_8021X_INNER_AUTH_METHODS": {
-        "action": ActionSetProperty("802-1x.phase2-auth"),
+        "action": ActionSetProperty(
+            "802-1x.phase2-auth",
+            {
+                "CHAP": "chap",
+                "GTC": "gtc",
+                "MD5": "md5",
+                "MSCHAP": "mschap",
+                "MSCHAPV2": "mschapv2",
+                "OTP": "otp",
+                "PAP": "pap",
+                "TLS": "tls",
+            },
+        ),
     },
     "IEEE_8021X_PASSWORD_FLAGS": {
         "action": ActionSetProperty(
@@ -616,7 +695,7 @@ IFCFG_PROPERTIES = {
         "action": ActionSetProperty("connection.autoconnect", YES_NO_CONVERSION_MAP)
     },
     "PREFIX": {"action": action_prefix, "list": True,},
-    "PROXY_METHOD": {"action": ActionSetProperty("proxy.method"),},
+    "PROXY_METHOD": {"action": ActionSetProperty("proxy.method")},
     "SECURITYMODE": {"action": ActionSetProperty("802-11-wireless-security.auth-alg"),},
     "STP": {"action": ActionSetProperty("bridge.stp", YES_NO_CONVERSION_MAP),},
     "TYPE": {
@@ -752,12 +831,13 @@ def validate_keyfile_config(keyfile_config: KEYFILE_CONFIG_TYPE) -> None:
         prop_settings = NM_SETTINGS_PROPERTIES[prop]
 
         choices = prop_settings.get("choices", None)
+
         if choices and value not in choices:
             logging.error(
                 "Invalid or unknown (read: not implemented) value for %s=%s. Valid values are %s",
                 prop,
                 value,
-                "'" + "', '".join(choices) + "'"
+                "'" + "', '".join(choices) + "'",
             )
             sys.exit(1)
 
@@ -782,11 +862,11 @@ def validate_keyfile_config(keyfile_config: KEYFILE_CONFIG_TYPE) -> None:
             sys.exit(1)
 
 
-def format_value_for_keyfile(value: KEYFILE_VALUE_TYPE) -> str:
+def format_value_for_keyfile(value: KEYFILE_SCALAR_VALUE_TYPE) -> str:
     if isinstance(value, str):
         return value
     elif isinstance(value, bool):
-        return "yes" if value else "no"
+        return "true" if value else "false"
     elif isinstance(value, int):
         return str(value)
 
@@ -797,24 +877,36 @@ def dump_keyfile(keyfile_config: KEYFILE_CONFIG_TYPE) -> str:
     connection_type: str = keyfile_config["connection.type"]
     params_by_section: typing.Dict[str, KEYFILE_CONFIG_TYPE] = defaultdict(dict)
 
-    for param, value in keyfile_config.items():
-        section, param_name = param.split(".", 1)
-        params_by_section[section][param_name] = value
+    for prop, value in keyfile_config.items():
+        section, _param_name = prop.split(".", 1)
+        section_keyfile = KEYFILE_SECTION_NAMES[section]
+        params_by_section[section_keyfile][prop] = value
 
     key_file_lines = []
 
-    for section in CONNECTION_TYPE_SECTIONS[connection_type]:
+    # get sections in correct order
+    sections = (
+        KEYFILE_SECTION_NAMES[section]
+        for section in CONNECTION_TYPE_SECTIONS[connection_type]
+    )
+
+    for section in sections:
         if section in params_by_section:
             key_file_lines.append(f"[{section}]")
 
-            for param, value in params_by_section[section].items():
+            for prop, value in params_by_section[section].items():
+                formatter = NM_SETTINGS_PROPERTIES[prop].get(
+                    "format_for_keyfile", format_value_for_keyfile
+                )
+                param = prop.split(".", 1)[1]
+
                 if isinstance(value, list):
                     for index, val in enumerate(value):
                         key_file_lines.append(
-                            f"{param}{index if index else ''}={format_value_for_keyfile(val)}"
+                            f"{param}{index if index else ''}={formatter(val)}"
                         )
                 else:
-                    key_file_lines.append(f"{param}={format_value_for_keyfile(value)}")
+                    key_file_lines.append(f"{param}={formatter(value)}")
 
             key_file_lines.append("")
 
